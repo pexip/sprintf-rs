@@ -159,3 +159,32 @@ fn test_ptr() {
         check_fmt("%#x", ptr_mut);
     }
 }
+
+#[test]
+fn perf_test() {
+    let repeating_fmt_str = "test%utest%sing";
+    let repeating_arg = 42;
+    let repeating_arg_str = "foo";
+    let fmt_str = {
+        let mut s = String::new();
+        for _ in 0..1000 {
+            s.push_str(repeating_fmt_str);
+        }
+        s
+    };
+    let fmt_args: Vec<&dyn Printf> = {
+        let mut v: Vec<&dyn Printf> = Vec::new();
+        for _ in 0..1000 {
+            v.push(&repeating_arg);
+            v.push(&repeating_arg_str);
+        }
+        v
+    };
+
+    let start = std::time::Instant::now();
+    for _ in 0..1000 {
+        vsprintf(&fmt_str, &fmt_args).unwrap();
+    }
+    let end = std::time::Instant::now();
+    eprintln!("took {:?}", end - start);
+}
